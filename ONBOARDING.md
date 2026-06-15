@@ -207,7 +207,9 @@ git branch -D practice/onboarding-나의이름     # 로컬 실습 브랜치 삭
 
 ---
 
-## 8. 도움이 필요하면
+## 8. 다음 단계 & 도움
+- ✅ 실습을 끝냈다면 → **[신입 첫 과제 (docs/신입_첫과제.md)](docs/신입_첫과제.md)** 로 실제 PR을 머지해 보세요
+- 📄 한 페이지 요약: [빠른 참조 치트시트 (docs/빠른참조_치트시트.md)](docs/빠른참조_치트시트.md)
 - 시스템 전체 설명: [`README.md`](README.md)
 - 점검 룰 정의: [`rules/audit_rules.yaml`](rules/audit_rules.yaml)
 - 실패 리포트 해석: 점검 후 생성되는 `audit_report.md`
