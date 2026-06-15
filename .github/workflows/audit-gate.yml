@@ -6,9 +6,9 @@ name: 감리 산출물 자동 점검 (Audit Gate)
 on:
   push:
     branches: [main, develop, "release/**"]
-    paths: ["deliverables/**", "audit_workflow/**"]
+    paths: ["deliverables/**", "rules/**", "audit_engine.py", ".github/workflows/**"]
   pull_request:
-    paths: ["deliverables/**", "audit_workflow/**"]
+    paths: ["deliverables/**", "rules/**", "audit_engine.py", ".github/workflows/**"]
   workflow_dispatch:        # 수동 실행 (감리 제출 직전 최종 점검용)
     inputs:
       phase:
@@ -31,7 +31,6 @@ jobs:
       - name: 감리 자동 점검 실행
         id: audit
         run: |
-          cd audit_workflow
           ARG=""
           if [ -n "${{ github.event.inputs.phase }}" ]; then
             ARG="--phase ${{ github.event.inputs.phase }}"
@@ -44,8 +43,8 @@ jobs:
         with:
           name: audit-report
           path: |
-            audit_workflow/audit_report.md
-            audit_workflow/audit_report.json
+            audit_report.md
+            audit_report.json
 
       - name: PR에 점검 결과 코멘트
         if: always() && github.event_name == 'pull_request'
@@ -53,7 +52,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const body = fs.readFileSync('audit_workflow/audit_report.md', 'utf8');
+            const body = fs.readFileSync('audit_report.md', 'utf8');
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
