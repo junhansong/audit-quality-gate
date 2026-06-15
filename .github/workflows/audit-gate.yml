@@ -1,0 +1,61 @@
+# 감리 제출 전 자동 점검 게이트 (GitHub Actions)
+# PR 생성/푸시 시 산출물을 자동 점검하고, 결함이 있으면 머지를 차단한다.
+name: 감리 산출물 자동 점검 (Audit Gate)
+
+on:
+  push:
+    branches: [main, develop, "release/**"]
+    paths: ["deliverables/**", "audit_workflow/**"]
+  pull_request:
+    paths: ["deliverables/**", "audit_workflow/**"]
+  workflow_dispatch:        # 수동 실행 (감리 제출 직전 최종 점검용)
+    inputs:
+      phase:
+        description: "특정 단계만 점검 (예: SD22-2, 비우면 전체)"
+        required: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 의존성 설치
+        run: pip install pyyaml python-docx pdfplumber openpyxl
+
+      - name: 감리 자동 점검 실행
+        id: audit
+        run: |
+          cd audit_workflow
+          ARG=""
+          if [ -n "${{ github.event.inputs.phase }}" ]; then
+            ARG="--phase ${{ github.event.inputs.phase }}"
+          fi
+          python audit_engine.py --rules rules/audit_rules.yaml $ARG
+
+      - name: 점검 리포트 업로드
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: audit-report
+          path: |
+            audit_workflow/audit_report.md
+            audit_workflow/audit_report.json
+
+      - name: PR에 점검 결과 코멘트
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('audit_workflow/audit_report.md', 'utf8');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: "## 🔍 감리 자동 점검 결과\n\n" + body
+            });

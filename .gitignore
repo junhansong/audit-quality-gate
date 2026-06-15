@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+audit_report.md
+audit_report.json
+.venv/
+node_modules/

@@ -1,0 +1,103 @@
+# =====================================================================
+# 응용시스템 감리 자동 점검 룰셋 (NIA 감리점검해설서 V3.0 기반)
+# 각 단계(phase)별로 필수 산출물(deliverables)과 점검 룰(checks)을 정의.
+# 점검 엔진(audit_engine.py)이 이 파일을 읽어 자동 검증을 수행한다.
+#
+# check.type 종류:
+#   exists        : 산출물 파일(패턴)이 존재하는가
+#   contains      : 산출물에 필수 키워드/섹션이 포함되어 있는가
+#   not_contains  : 금지 토큰(TBD, 미정, 공란 등)이 없는가
+#   traceability  : ID 추적 매트릭스 정합성 (CSV 기반)
+#   min_count     : 특정 패턴이 최소 N회 이상 등장하는가
+# =====================================================================
+
+project:
+  name: "응용시스템 감리 대비 프로젝트"
+  doc_root: "./deliverables"        # 산출물 루트 폴더
+  rtm_file: "./deliverables/RTM.csv" # 요구사항 추적 매트릭스
+
+# 모든 산출물 문서에 공통 적용되는 형식 점검
+common_checks:
+  forbidden_tokens: ["TBD", "T.B.D", "미정", "추후작성", "작성예정", "XXX", "???"]
+  required_sections: ["개정이력", "목차"]
+
+phases:
+  - code: SD21-2
+    name: "요구분석"
+    deliverables:
+      - { id: D1, name: "비전기술서", pattern: "01_요구분석/비전기술서*.{md,docx,hwp,pdf}" }
+      - { id: D2, name: "사용자요구사항정의서", pattern: "01_요구분석/*요구사항정의서*.{md,docx,hwp,pdf,xlsx}" }
+      - { id: D3, name: "현행업무문제점분석문서", pattern: "01_요구분석/*문제점분석*.{md,docx,hwp,pdf}" }
+      - { id: D4, name: "유스케이스모형기술서", pattern: "01_요구분석/*유스케이스*.{md,docx,hwp,pdf}" }
+      - { id: D5, name: "개념적클래스모형기술서", pattern: "01_요구분석/*클래스모형*.{md,docx,hwp,pdf}" }
+      - { id: D6, name: "UI프로토타이핑계획서", pattern: "01_요구분석/*프로토타이핑계획*.{md,docx,hwp,pdf}" }
+    checks:
+      - { code: "SD21-2-A1", type: contains, target: D3, keywords: ["문제점", "해결방안", "제약사항"], desc: "현행업무 분석/문제점/해결방안" }
+      - { code: "SD21-2-B1", type: contains, target: D2, keywords: ["기능 요구사항", "비기능", "이해관계자"], desc: "기능/비기능 요구사항 도출 적정성" }
+      - { code: "SD21-2-B1-ID", type: min_count, target: D2, pattern: 'REQ-\d+', min: 5, desc: "요구사항 ID 부여(REQ-NNN) 최소 5건" }
+      - { code: "SD21-2-C1", type: contains, target: D4, keywords: ["액터", "유스케이스", "시나리오"], desc: "유스케이스 모형 표현/상세화" }
+      - { code: "SD21-2-D1", type: contains, target: D5, keywords: ["클래스", "관계", "연산"], desc: "개념적 분석클래스 도출" }
+      - { code: "SD21-2-E1", type: contains, target: D6, keywords: ["대상업무", "일정", "평가"], desc: "프로토타이핑 계획 적정성" }
+
+  - code: SD22-2
+    name: "분석설계"
+    deliverables:
+      - { id: D1, name: "업무상세분석서", pattern: "02_분석설계/*업무상세분석*.{md,docx,hwp,pdf}" }
+      - { id: D2, name: "유스케이스모형기술서", pattern: "02_분석설계/*유스케이스*.{md,docx,hwp,pdf}" }
+      - { id: D3, name: "UI흐름도", pattern: "02_분석설계/*인터페이스흐름*.{md,docx,hwp,pdf}" }
+      - { id: D4, name: "화면보고서정의서", pattern: "02_분석설계/*화면*정의서*.{md,docx,hwp,pdf,xlsx}" }
+      - { id: D5, name: "클래스명세서", pattern: "02_분석설계/*클래스명세*.{md,docx,hwp,pdf}" }
+      - { id: D6, name: "내외부시스템연계설계서", pattern: "02_분석설계/*연계설계*.{md,docx,hwp,pdf}" }
+      - { id: D7, name: "컴포넌트설계서", pattern: "02_분석설계/*컴포넌트설계*.{md,docx,hwp,pdf}" }
+      - { id: D8, name: "단위시험계획서", pattern: "02_분석설계/*단위시험계획*.{md,docx,hwp,pdf,xlsx}" }
+      - { id: D9, name: "시스템보안정책문서", pattern: "02_분석설계/*보안정책*.{md,docx,hwp,pdf}" }
+    checks:
+      - { code: "SD22-2-A1", type: contains, target: D1, keywords: ["업무 우선순위", "업무 흐름", "위험요인"], desc: "업무영역 충분 분석" }
+      - { code: "SD22-2-B1", type: contains, target: D2, keywords: ["액터", "기본 흐름", "예외 흐름"], desc: "유스케이스 정제/실체화" }
+      - { code: "SD22-2-D2", type: contains, target: D4, keywords: ["레이아웃", "일관성"], desc: "화면/보고서 양식 설계" }
+      - { code: "SD22-2-E2", type: contains, target: D5, keywords: ["속성", "연산", "관계"], desc: "클래스 구현가능 수준 상세화" }
+      - { code: "SD22-2-F1", type: contains, target: D6, keywords: ["연계 대상", "연계 주기", "연계 방식"], desc: "내외부 연계 설계" }
+      - { code: "SD22-2-G1", type: contains, target: D9, keywords: ["접근권한", "감사", "보안"], desc: "접근통제/보안 설계 반영" }
+      - { code: "SD22-2-I1", type: contains, target: D8, keywords: ["시나리오", "시험 데이터", "예외"], desc: "단위시험 계획 수립" }
+
+  - code: SD23-2
+    name: "구현"
+    deliverables:
+      - { id: D1, name: "컴포넌트코드", pattern: "03_구현/src/**/*.{js,jsx,ts,tsx,py,java}" }
+      - { id: D3, name: "단위시험결과서", pattern: "03_구현/*단위시험결과*.{md,docx,hwp,pdf,xlsx}" }
+      - { id: D4, name: "통합시험계획서", pattern: "03_구현/*통합시험계획*.{md,docx,hwp,pdf}" }
+    checks:
+      - { code: "SD23-2-E1", type: contains, target: D3, keywords: ["시험 결과", "오류", "개선"], desc: "단위시험 실시/개선" }
+      - { code: "SD23-2-F1", type: contains, target: D4, keywords: ["인터페이스", "시험환경", "시나리오"], desc: "통합시험 계획 수립" }
+      # 코드 품질은 외부 도구(lint/test) 결과 파일로 연계 점검
+      - { code: "SD23-2-A1-COV", type: contains, target: D3, keywords: ["커버리지", "Pass", "통과"], desc: "단위시험 통과/커버리지 명시" }
+
+  - code: SD14-1
+    name: "시험활동"
+    deliverables:
+      - { id: D1, name: "시험계획서", pattern: "04_시험활동/*시험계획서*.{md,docx,hwp,pdf}" }
+      - { id: D2, name: "통합시험결과서", pattern: "04_시험활동/*통합시험결과*.{md,docx,hwp,pdf,xlsx}" }
+      - { id: D3, name: "시스템시험결과서", pattern: "04_시험활동/*시스템시험결과*.{md,docx,hwp,pdf,xlsx}" }
+      - { id: D4, name: "시험결과관리대장", pattern: "04_시험활동/*결함*.{md,docx,hwp,pdf,xlsx}" }
+      - { id: D6, name: "사용자운영자지침서", pattern: "04_시험활동/*지침서*.{md,docx,hwp,pdf}" }
+      - { id: D7, name: "인수시험계획서", pattern: "04_시험활동/*인수시험계획*.{md,docx,hwp,pdf}" }
+    checks:
+      - { code: "SD14-1-A1", type: contains, target: D1, keywords: ["시험 대상", "품질목표", "시험 데이터"], desc: "시험환경/준비 완료" }
+      - { code: "SD14-1-B2", type: contains, target: D2, keywords: ["연계", "무결성", "완전성"], desc: "통합시험 연계/무결성" }
+      - { code: "SD14-1-C2", type: contains, target: D3, keywords: ["성능", "가용성", "보안성"], desc: "성능/가용성/보안성 검증" }
+      - { code: "SD14-1-F1", type: contains, target: D6, keywords: ["백업", "복구", "설치", "운영"], desc: "사용자/운영자 지침서" }
+
+  - code: SD15-1
+    name: "운영준비"
+    deliverables:
+      - { id: D1, name: "시스템전환설치계획서", pattern: "05_운영준비/*전환*계획*.{md,docx,hwp,pdf}" }
+      - { id: D2, name: "시스템전환설치결과서", pattern: "05_운영준비/*전환*결과*.{md,docx,hwp,pdf}" }
+      - { id: D7, name: "데이터전환계획서", pattern: "05_운영준비/*데이터전환*계획*.{md,docx,hwp,pdf}" }
+      - { id: D8, name: "데이터전환결과서", pattern: "05_운영준비/*데이터전환*결과*.{md,docx,hwp,pdf}" }
+      - { id: D10, name: "인수시험계획서", pattern: "05_운영준비/*인수시험계획*.{md,docx,hwp,pdf}" }
+      - { id: D11, name: "인수시험결과서", pattern: "05_운영준비/*인수시험결과*.{md,docx,hwp,pdf}" }
+      - { id: D15, name: "요구사항추적표", pattern: "05_운영준비/*추적*.{csv,xlsx,md}" }
+    checks:
+      - { code: "SD15-1-A1", type: contains, target: D1, keywords: ["설치 대상", "일정", "절차"], desc: "운영환경 설치/배포" }
+      - { code: "SD15-1-B1", type: contains, target: D8, keywords: ["전환", "검증"], desc: "초기데이터/전환 검증" }
+      - { code: "SD15-1-D1", type: contains, target: D11, keywords: ["승인", "사용자", "사업목표"], desc: "인수시험 승인 획득" }
